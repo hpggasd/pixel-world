@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { io } from "socket.io-client";
 
+const [scale, setScale] = useState(1);
+
 const socket = io("http://" + window.location.hostname + ":3001");
 window.socket = socket;
 
-const GRID_SIZE = 50;
+const GRID_SIZE = 50
 
 const PALETTE = [
   { color: "#000000", name: "Black", cost: 0 },
@@ -40,7 +42,7 @@ function App() {
 
   useEffect(() => {
     socket.on("init", (serverPixels) => {
-      setPixels(serverPixels);
+      setPixels(serverPixel);
     });
 
     socket.on("update", ({ x, y, color }) => {
@@ -103,6 +105,13 @@ function App() {
       }}
       onMouseLeave={() => setIsDrawing(false)}
       onTouchEnd={() => setIsDrawing(false)}
+      onWheel={(e) => {
+        e.preventDefault();
+        setScale((prev) => {
+          const next = prev + (e.deltaY < 0 ? 0.1 : -0.1);
+          return Math.max(0.5, Math.min(4, next));
+        });
+      }}
     >
       <div style={{ position: "fixed", top: 10, right: 10 }}>
         {!isAdmin ? (
@@ -231,7 +240,7 @@ function App() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${GRID_SIZE}, 12px)`,
+          gridTemplateColumns: `repeat(${GRID_SIZE}, ${12 * scale}`,
           width: "fit-content",
           margin: "20px auto",
         }}
@@ -265,8 +274,8 @@ function App() {
                 drawPixel(x, y);
               }}
               style={{
-                width: 12,
-                height: 12,
+                width: 12*scale,
+                height: 12*scale,
                 backgroundColor: color,
                 border:
                   isSelecting &&
